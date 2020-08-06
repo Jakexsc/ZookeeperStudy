@@ -2,6 +2,7 @@ package zkapi;
 
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -21,7 +22,7 @@ import java.util.concurrent.CountDownLatch;
 public class ZkNodeOperator implements Watcher {
     private ZooKeeper zooKeeper = null;
     private static final String zkServerPath = "192.168.37.128:2181";
-    private static final Integer timeout = 5000;
+    private static final Integer timeout = 10000;
     private static final Logger logger = LoggerFactory.getLogger(ZkNodeOperator.class);
     public ZkNodeOperator() {
 
@@ -45,7 +46,10 @@ public class ZkNodeOperator implements Watcher {
     public static void main(String[] args) throws InterruptedException, KeeperException {
         ZkNodeOperator zkNodeOperator = new ZkNodeOperator(zkServerPath);
         // 创建zk节点
-        zkNodeOperator.createZkNode("/testnode", "testnode".getBytes(), Ids.OPEN_ACL_UNSAFE);
+//        zkNodeOperator.createZkNode("/testnode", "testnode".getBytes(), Ids.OPEN_ACL_UNSAFE);
+        // 修改节点
+        Stat stat = zkNodeOperator.getZooKeeper().setData("/testnode", "xsc".getBytes(), 0);
+        logger.warn("版本号为: {}", stat.getVersion());
     }
 
     private void createZkNode(String path, byte[] data, List<ACL> openAclUnsafe) throws InterruptedException, KeeperException {
@@ -75,5 +79,13 @@ public class ZkNodeOperator implements Watcher {
     @Override
     public void process(WatchedEvent watchedEvent) {
         logger.warn("收到通知: {}", watchedEvent.getState());
+    }
+
+    public ZooKeeper getZooKeeper() {
+        return zooKeeper;
+    }
+
+    public void setZooKeeper(ZooKeeper zooKeeper) {
+        this.zooKeeper = zooKeeper;
     }
 }
