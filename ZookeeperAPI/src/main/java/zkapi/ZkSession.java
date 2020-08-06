@@ -32,10 +32,10 @@ public class ZkSession implements Watcher {
             Thread.sleep(200);
             logger.warn("开始会连重连...");
             ZooKeeper zkSession = new ZooKeeper(zkServerPath, timeout, new ZkSession(), sessionId, sessionPasswd);
-            logger.warn("重新连接状态zkSession: {}",  zkSession.getState());
+            logger.warn("重新连接状态zkSession: {}", zkSession.getState());
             // 线程阻塞，等所有子线程执行完毕再执行
             countDownLatch.await();
-            logger.warn("重新连接状态zkSession: {}",  zkSession.getState());
+            logger.warn("重新连接状态zkSession: {}", zkSession.getState());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

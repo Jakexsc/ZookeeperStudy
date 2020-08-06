@@ -1,18 +1,13 @@
 package zkapi;
 
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
-import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.zookeeper.ZooDefs.Ids;
 
-import javax.security.auth.callback.Callback;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author JakeXsc
@@ -22,8 +17,9 @@ import java.util.concurrent.CountDownLatch;
 public class ZkNodeOperator implements Watcher {
     private ZooKeeper zooKeeper = null;
     private static final String zkServerPath = "192.168.37.128:2181";
-    private static final Integer timeout = 10000;
+    private static final Integer timeout = 15000;
     private static final Logger logger = LoggerFactory.getLogger(ZkNodeOperator.class);
+
     public ZkNodeOperator() {
 
     }
@@ -45,11 +41,29 @@ public class ZkNodeOperator implements Watcher {
 
     public static void main(String[] args) throws InterruptedException, KeeperException {
         ZkNodeOperator zkNodeOperator = new ZkNodeOperator(zkServerPath);
-        // 创建zk节点
-//        zkNodeOperator.createZkNode("/testnode", "testnode".getBytes(), Ids.OPEN_ACL_UNSAFE);
-        // 修改节点
-        Stat stat = zkNodeOperator.getZooKeeper().setData("/testnode", "xsc".getBytes(), 0);
-        logger.warn("版本号为: {}", stat.getVersion());
+        /**
+         * 创建节点
+         */
+        zkNodeOperator.createZkNode("/testnode-delete", "testnode".getBytes(), Ids.OPEN_ACL_UNSAFE);
+        Thread.sleep(5000);
+        /**
+         * 修改节点
+         */
+//        Stat stat = zkNodeOperator.getZooKeeper().setData("/testnode", "xsc".getBytes(), 0);
+//        logger.warn("版本号为: {}", stat.getVersion());
+
+        /**
+         * 同步删除节点
+         */
+//        zkNodeOperator.getZooKeeper().delete("/testnode-delete", 0);
+
+        String ctx = "'delete':'success'";
+
+        /**
+         * 异步删除节点
+         */
+        zkNodeOperator.getZooKeeper().delete("/testnode-delete", 0, new DeleteCallback(), ctx);
+        Thread.sleep(2000);
     }
 
     private void createZkNode(String path, byte[] data, List<ACL> openAclUnsafe) throws InterruptedException, KeeperException {
@@ -66,14 +80,17 @@ public class ZkNodeOperator implements Watcher {
          *                             -> EPHEMERAL_SEQUENTIAL: 临时顺序节点
          */
 //        String result = null;
-//        // 同步创建节点
+        /**
+         * 同步创建节点
+         */
 //        result = zooKeeper.create(path, data, openAclUnsafe, CreateMode.EPHEMERAL);
 //        logger.warn("创建节点: {} 成功, {}", result, new Date());
 //        Thread.sleep(10000);
         String ctx = "{'create':'success'}";
-        // 异步创建节点
+        /**
+         * 异步创建节点
+         */
         zooKeeper.create(path, data, openAclUnsafe, CreateMode.PERSISTENT, new CreateCallBack(), ctx);
-        Thread.sleep(5000);
     }
 
     @Override
