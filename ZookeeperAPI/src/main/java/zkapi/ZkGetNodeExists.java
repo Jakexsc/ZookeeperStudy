@@ -49,12 +49,8 @@ public class ZkGetNodeExists implements Watcher {
 
     public static void main(String[] args) throws KeeperException, InterruptedException {
         ZkGetNodeExists zkGetNodeData = new ZkGetNodeExists(zkServerPath);
-        /**
-         * 参数
-         * path: 路径
-         * watch: 是否创建watch -> boolean类型
-         * stat: 状态
-         */
+
+        // 判断节点是否存在
         Stat exists = zkGetNodeData.getZooKeeper().exists("/xsc", true);
         if (exists != null) {
             System.out.println("查询的节点版本为:" + stat.getVersion());
