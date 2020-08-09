@@ -1,10 +1,14 @@
 package zkapi;
 
+import commons.AclUtils;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Id;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 创建ACL节点
@@ -36,12 +40,27 @@ public class ZkCreateNodeAcl implements Watcher {
         }
     }
 
-    public static void main(String[] args) throws KeeperException, InterruptedException {
+    public static void main(String[] args) throws KeeperException, InterruptedException, NoSuchAlgorithmException {
         ZkCreateNodeAcl zkCreateNodeAcl = new ZkCreateNodeAcl(zkServerPath);
-        zkCreateNodeAcl.createNode("/test", "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE);
+        // 所有人都可以访问
+//        zkCreateNodeAcl.createNode("/test", "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE);
+
+        /**
+         * 自定义用户权限
+         */
+//        List<ACL> aclList = new ArrayList<>();
+//        Id xscTest1 = new Id("digest", AclUtils.getDigestUserPwd("xsc1:xsc"));
+//        Id xscTest2 = new Id("digest", AclUtils.getDigestUserPwd("xsc2:xsc"));
+//        aclList.add(new ACL(ZooDefs.Perms.ALL, xscTest1));
+//        aclList.add(new ACL(ZooDefs.Perms.READ, xscTest2));
+//        aclList.add(new ACL(ZooDefs.Perms.DELETE | ZooDefs.Perms.CREATE, xscTest2));
+//        zkCreateNodeAcl.createNode("/test/test1", "test".getBytes(), aclList);
+
+        zkCreateNodeAcl.getZookeeper().addAuthInfo("digest", "xsc2:xsc".getBytes());
+        zkCreateNodeAcl.createNode("/test/test1/test111", "test".getBytes(), ZooDefs.Ids.CREATOR_ALL_ACL);
     }
 
-    private void createNode(String path, byte[] bytes, ArrayList<ACL> acls) throws KeeperException, InterruptedException {
+    private void createNode(String path, byte[] bytes, List<ACL> acls) throws KeeperException, InterruptedException {
         String result = zookeeper.create(path, bytes, acls, CreateMode.PERSISTENT);
         System.out.println("节点创建成功:" + result);
     }
