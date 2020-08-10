@@ -4,6 +4,8 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.retry.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
 
 /**
  * @author JakeXsc
@@ -11,7 +13,7 @@ import org.apache.curator.retry.*;
  * @date 2020/8/10 22:48
  */
 public class CuratorStudy {
-    public static final String zkServerPath = "192.168.37.128";
+    public static final String zkServerPath = "192.168.37.128:2181";
     public CuratorFramework client = null;
 
     public CuratorStudy() {
@@ -52,6 +54,8 @@ public class CuratorStudy {
                 .connectString(zkServerPath)
                 .sessionTimeoutMs(10000)
                 .retryPolicy(retry)
+                // 命名空间
+                .namespace("workspace")
                 .build();
         client.start();
     }
@@ -62,10 +66,21 @@ public class CuratorStudy {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         CuratorStudy curatorStudy = new CuratorStudy();
         boolean isStarted1 = curatorStudy.client.isStarted();
         System.out.println("当前客户端状态为: " + (isStarted1 ? "连接中" : "已关闭"));
+
+        // 创建节点
+        curatorStudy.client.create()
+                // 递归创建
+                .creatingParentsIfNeeded()
+                // 创建节点类型
+                .withMode(CreateMode.PERSISTENT)
+                // acl权限
+                .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+                // 遍历去创建
+                .forPath("/super/xsc", "xsc".getBytes());
 
         Thread.sleep(3000);
         curatorStudy.closeClient();
