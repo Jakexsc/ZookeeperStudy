@@ -6,6 +6,9 @@ import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.retry.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.Stat;
+
+import java.util.List;
 
 /**
  * @author JakeXsc
@@ -85,13 +88,31 @@ public class CuratorStudy {
         // 修改节点
 //        curatorStudy.client.setData().withVersion(0).forPath("/super/xsc", "xsc1".getBytes());
 
-        curatorStudy.client.delete()
-                // 如果删除失败，会在后台继续删除，直到删除成功
-                .guaranteed()
-                // 如果有子节点则删除
-                .deletingChildrenIfNeeded()
-                .withVersion(1)
-                .forPath("/super/xsc");
+        // 删除节点
+//        curatorStudy.client.delete()
+//                // 如果删除失败，会在后台继续删除，直到删除成功
+//                .guaranteed()
+//                // 如果有子节点则删除
+//                .deletingChildrenIfNeeded()
+//                .withVersion(1)
+//                .forPath("/super/xsc");
+
+        // 查询节点数据
+//        Stat stat = new Stat();
+//        byte[] bytes = curatorStudy.client.getData().storingStatIn(stat).forPath("/super/xsc");
+//        System.out.println("节点/super/xsc的数据为: " + new String(bytes));
+//        System.out.println("该节点的版本号为: " + stat.getVersion());
+
+        // 查询子节点
+//        System.out.print("开始打印子节点:");
+//        curatorStudy.client.getChildren().forPath("/super")
+//                .forEach((String children) -> {
+//                    System.out.println(children);
+//                });
+
+        // 判断节点是否存在 不存在则为空
+        Stat stat = curatorStudy.client.checkExists().forPath("/super/xsc1");
+        System.out.println(stat);
 
         Thread.sleep(3000);
         curatorStudy.closeClient();
