@@ -111,10 +111,14 @@ public class CuratorStudy {
 //                });
 
         // 判断节点是否存在 不存在则为空
-        Stat stat = curatorStudy.client.checkExists().forPath("/super/xsc1");
-        System.out.println(stat);
+//        Stat stat = curatorStudy.client.checkExists().forPath("/super/xsc1");
+//        System.out.println(stat);
 
-        Thread.sleep(3000);
+        // usingWatcher 监听只会触发一次，监听完毕后就销毁
+        curatorStudy.client.getData().usingWatcher(new MyCuratorWatch()).forPath("/super/xsc");
+
+
+        Thread.sleep(10000);
         curatorStudy.closeClient();
         boolean isStarted2 = curatorStudy.client.isStarted();
         System.out.println("当前客户端状态为: " + (isStarted2 ? "连接中" : "已关闭"));
