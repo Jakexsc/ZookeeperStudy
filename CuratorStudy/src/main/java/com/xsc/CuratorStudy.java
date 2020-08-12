@@ -72,15 +72,26 @@ public class CuratorStudy {
         System.out.println("当前客户端状态为: " + (isStarted1 ? "连接中" : "已关闭"));
 
         // 创建节点
-        curatorStudy.client.create()
-                // 递归创建
-                .creatingParentsIfNeeded()
-                // 创建节点类型
-                .withMode(CreateMode.PERSISTENT)
-                // acl权限
-                .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                // 遍历去创建
-                .forPath("/super/xsc", "xsc".getBytes());
+//        curatorStudy.client.create()
+//                // 递归创建
+//                .creatingParentsIfNeeded()
+//                // 创建节点类型
+//                .withMode(CreateMode.PERSISTENT)
+//                // acl权限
+//                .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+//                // 遍历去创建
+//                .forPath("/super/xsc", "xsc".getBytes());
+
+        // 修改节点
+//        curatorStudy.client.setData().withVersion(0).forPath("/super/xsc", "xsc1".getBytes());
+
+        curatorStudy.client.delete()
+                // 如果删除失败，会在后台继续删除，直到删除成功
+                .guaranteed()
+                // 如果有子节点则删除
+                .deletingChildrenIfNeeded()
+                .withVersion(1)
+                .forPath("/super/xsc");
 
         Thread.sleep(3000);
         curatorStudy.closeClient();
