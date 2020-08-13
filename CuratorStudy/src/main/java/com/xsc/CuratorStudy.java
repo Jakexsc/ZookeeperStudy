@@ -3,6 +3,7 @@ package com.xsc;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.framework.recipes.cache.*;
 import org.apache.curator.retry.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
@@ -115,10 +116,60 @@ public class CuratorStudy {
 //        System.out.println(stat);
 
         // usingWatcher 监听只会触发一次，监听完毕后就销毁
-        curatorStudy.client.getData().usingWatcher(new MyCuratorWatch()).forPath("/super/xsc");
+//        curatorStudy.client.getData().usingWatcher(new MyCuratorWatch()).forPath("/super/xsc");
 
+        // 为节点添加watch
+//        final NodeCache nodeCache = new NodeCache(curatorStudy.client, "/super/xsc");
+//        // 如果buildinitial为false 则初始化数据为空
+//        nodeCache.start(true);
+//        if (nodeCache.getCurrentData() != null) {
+//            System.out.println("NodeCache初始化的数据为:" + new String(nodeCache.getCurrentData().getData()));
+//        } else {
+//            System.out.println("初始化数据为空");
+//        }
+//
+//        nodeCache.getListenable().addListener(new NodeCacheListener() {
+//            @Override
+//            public void nodeChanged() throws Exception {
+//                String data = new String(nodeCache.getCurrentData().getData());
+//                System.out.println("节点路径为:" + nodeCache.getCurrentData().getPath() + ", 数据为:" + data);
+//            }
+//        });
 
-        Thread.sleep(10000);
+        // cacheData: 设置缓存节点状态
+        final PathChildrenCache pathChildrenCache = new PathChildrenCache(curatorStudy.client, "/super/xsc", true);
+        /**
+         * StartMode: 初始化的方式
+         * NORMAL -> 异步初始化
+         * POST_INITIALIZED_EVENT -> 异步初始化, 触发初始化事件
+         * BUILD_INITIAL_CACHE -> 同步初始化
+         */
+        pathChildrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+        System.out.println("子节点数据为:");
+        pathChildrenCache.getCurrentData().forEach((ChildData childdata) -> {
+            System.out.println(new String(childdata.getData()));
+        });
+        pathChildrenCache.getListenable().addListener(new PathChildrenCacheListener() {
+            @Override
+            public void childEvent(CuratorFramework curatorFramework, PathChildrenCacheEvent pathChildrenCacheEvent) throws Exception {
+                // 初始化
+                if (pathChildrenCacheEvent.getType().equals(PathChildrenCacheEvent.Type.INITIALIZED)) {
+                    System.out.println("子节点初始化OK...");
+                // 添加操作
+                } else if (pathChildrenCacheEvent.getType().equals(PathChildrenCacheEvent.Type.CHILD_ADDED)) {
+                    System.out.println("子节点添加数据:" + new String(pathChildrenCacheEvent.getData().getData()));
+                    System.out.println("子节点路径为:" + pathChildrenCacheEvent.getData().getPath());
+                // 更新操作
+                } else if (pathChildrenCacheEvent.getType().equals(PathChildrenCacheEvent.Type.CHILD_UPDATED)) {
+                    System.out.println("子节点已更新:" + new String(pathChildrenCacheEvent.getData().getData()));
+                // 删除操作
+                } else if (pathChildrenCacheEvent.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
+                    System.out.println("子节点已经删除:" + pathChildrenCacheEvent.getData().getPath());
+                }
+            }
+        });
+
+        Thread.sleep(30000);
         curatorStudy.closeClient();
         boolean isStarted2 = curatorStudy.client.isStarted();
         System.out.println("当前客户端状态为: " + (isStarted2 ? "连接中" : "已关闭"));
